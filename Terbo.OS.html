@@ -1,0 +1,2865 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terbo OS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+            box-sizing: border-box;
+        }
+
+        .desktop {
+            height: 100vh;
+            position: relative;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+            transition: all 0.5s ease;
+        }
+
+        .desktop.night-mode {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        }
+
+        .desktop-logo {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.1;
+            font-size: 200px;
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.3);
+            text-shadow: 0 0 50px rgba(255, 255, 255, 0.2);
+            pointer-events: none;
+            z-index: 1;
+            transition: all 0.5s ease;
+            user-select: none;
+        }
+
+        .desktop.night-mode .desktop-logo {
+            color: rgba(255, 255, 255, 0.15);
+            text-shadow: 0 0 30px rgba(103, 126, 234, 0.3);
+        }
+
+        .desktop-logo::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: -20px;
+            right: -20px;
+            bottom: -20px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: logoGlow 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes logoGlow {
+            0% {
+                opacity: 0.3;
+                transform: scale(0.95);
+            }
+            100% {
+                opacity: 0.6;
+                transform: scale(1.05);
+            }
+        }
+
+        .taskbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 48px;
+            background: rgba(32, 32, 32, 0.8);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .desktop.night-mode .taskbar {
+            background: rgba(15, 15, 25, 0.9);
+            border-top: 1px solid rgba(103, 126, 234, 0.2);
+        }
+
+        .start-button {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .start-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .taskbar-apps {
+            display: flex;
+            gap: 8px;
+            margin-left: 12px;
+        }
+
+        .taskbar-app {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .taskbar-app:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .taskbar-app.active {
+            background: rgba(255, 255, 255, 0.3);
+            border-bottom: 2px solid #0078d4;
+        }
+
+        .system-tray {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .theme-toggle {
+            width: 40px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        .desktop.night-mode .theme-toggle {
+            background: rgba(103, 126, 234, 0.2);
+        }
+
+        .desktop.night-mode .theme-toggle:hover {
+            background: rgba(103, 126, 234, 0.3);
+        }
+
+        .window {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            min-width: 400px;
+            min-height: 300px;
+            display: none;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .desktop.night-mode .window {
+            background: rgba(30, 30, 40, 0.95);
+            border: 1px solid rgba(103, 126, 234, 0.3);
+            color: #e0e0e0;
+        }
+
+        .window.active {
+            display: block;
+            z-index: 100;
+        }
+
+        .window-header {
+            height: 40px;
+            background: rgba(32, 32, 32, 0.1);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            cursor: move;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .window-title {
+            flex: 1;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .window-control {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .minimize { background: #ffd700; }
+        .maximize { background: #00ff00; }
+        .close { background: #ff5f56; }
+
+        .window-control:hover {
+            opacity: 0.8;
+        }
+
+        .window-content {
+            height: calc(100% - 40px);
+            padding: 16px;
+            overflow: auto;
+        }
+
+        .file-explorer {
+            display: flex;
+            height: 100%;
+        }
+
+        .sidebar {
+            width: 200px;
+            background: rgba(248, 249, 250, 0.8);
+            border-right: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 12px;
+        }
+
+        .sidebar-item {
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-bottom: 4px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-item:hover {
+            background: rgba(0, 120, 212, 0.1);
+        }
+
+        .sidebar-item.active {
+            background: rgba(0, 120, 212, 0.2);
+            color: #0078d4;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 16px;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .toolbar-button {
+            padding: 8px 16px;
+            background: rgba(0, 120, 212, 0.1);
+            border: 1px solid rgba(0, 120, 212, 0.3);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .toolbar-button:hover {
+            background: rgba(0, 120, 212, 0.2);
+        }
+
+        .file-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 16px;
+        }
+
+        .file-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .file-item:hover {
+            background: rgba(0, 120, 212, 0.1);
+        }
+
+        .file-item.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+            transition: all 0.2s ease;
+        }
+
+        .file-item.drop-target {
+            background: rgba(103, 126, 234, 0.2);
+            border: 2px dashed #667eea;
+            transform: scale(1.05);
+            transition: all 0.2s ease;
+        }
+
+        .file-item.drop-target .file-icon {
+            animation: bounce 0.6s ease-in-out infinite alternate;
+        }
+
+        @keyframes bounce {
+            from { transform: translateY(0px); }
+            to { transform: translateY(-5px); }
+        }
+
+        .drag-preview {
+            pointer-events: none;
+            position: absolute;
+            z-index: 1000;
+            opacity: 0.8;
+            transform: rotate(5deg);
+        }
+
+        .main-drop-zone {
+            background: rgba(103, 126, 234, 0.05);
+            border: 2px dashed rgba(103, 126, 234, 0.3);
+            border-radius: 8px;
+        }
+
+        @keyframes moveSuccess {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+            20% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+            80% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.8);
+            }
+        }
+
+        .sidebar-drop-target {
+            background: rgba(103, 126, 234, 0.2) !important;
+            border-left: 4px solid #667eea;
+            transform: translateX(5px);
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-drop-target::before {
+            content: '📥';
+            margin-right: 8px;
+            animation: pulse 0.8s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulse {
+            from { opacity: 0.5; }
+            to { opacity: 1; }
+        }
+
+        .file-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .file-name {
+            font-size: 12px;
+            word-break: break-word;
+        }
+
+        .browser-content {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .browser-toolbar {
+            display: flex;
+            gap: 8px;
+            padding: 12px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            background: rgba(248, 249, 250, 0.8);
+        }
+
+        .url-bar {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            border-radius: 20px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .browser-button {
+            padding: 8px 16px;
+            background: #0078d4;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .browser-button:hover {
+            background: #106ebe;
+        }
+
+        .browser-frame {
+            flex: 1;
+            padding: 16px;
+            background: white;
+            overflow: auto;
+        }
+
+        .search-results {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .search-result {
+            padding: 16px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .search-result:hover {
+            background: rgba(0, 120, 212, 0.05);
+        }
+
+        .result-title {
+            font-weight: 600;
+            color: #1a0dab;
+            margin-bottom: 4px;
+        }
+
+        .result-url {
+            color: #006621;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .result-description {
+            color: #545454;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            margin-bottom: 16px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .modal-button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .modal-button.primary {
+            background: #0078d4;
+            color: white;
+        }
+
+        .modal-button.secondary {
+            background: rgba(0, 0, 0, 0.1);
+            color: #333;
+        }
+
+        .modal-button:hover {
+            opacity: 0.8;
+        }
+
+        .context-menu {
+            position: fixed;
+            background: white;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            padding: 8px 0;
+            display: none;
+            z-index: 3000;
+            min-width: 150px;
+        }
+
+        .context-menu.active {
+            display: block;
+        }
+
+        .context-menu-item {
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .context-menu-item:hover {
+            background: rgba(0, 120, 212, 0.1);
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            padding: 8px 12px;
+            background: rgba(248, 249, 250, 0.8);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .breadcrumb-item {
+            cursor: pointer;
+            color: #0078d4;
+        }
+
+        .breadcrumb-item:hover {
+            text-decoration: underline;
+        }
+
+        .breadcrumb-separator {
+            color: #666;
+        }
+
+        .file-content-viewer {
+            background: #f8f9fa;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 6px;
+            padding: 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow: auto;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #0078d4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .desktop-icon {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .desktop-icon:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .desktop-icon .icon {
+            font-size: 32px;
+            margin-bottom: 4px;
+        }
+
+        .desktop-icon .label {
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .start-menu {
+            position: fixed;
+            bottom: 60px;
+            left: 12px;
+            width: 600px;
+            height: 500px;
+            background: rgba(32, 32, 32, 0.95);
+            backdrop-filter: blur(30px);
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: none;
+            z-index: 2000;
+            overflow: hidden;
+        }
+
+        .start-menu.active {
+            display: block;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .start-menu-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .start-menu-avatar {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .start-menu-user {
+            flex: 1;
+        }
+
+        .start-menu-username {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .start-menu-status {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .start-menu-content {
+            display: flex;
+            height: calc(100% - 80px);
+        }
+
+        .start-menu-sidebar {
+            width: 200px;
+            background: rgba(40, 40, 40, 0.8);
+            padding: 16px 0;
+        }
+
+        .start-menu-section {
+            margin-bottom: 20px;
+        }
+
+        .start-menu-section-title {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            padding: 0 16px;
+            margin-bottom: 8px;
+        }
+
+        .start-menu-item {
+            padding: 12px 16px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .start-menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .start-menu-item.active {
+            background: rgba(103, 126, 234, 0.3);
+            border-right: 3px solid #667eea;
+        }
+
+        .start-menu-main {
+            flex: 1;
+            padding: 20px;
+            background: rgba(48, 48, 48, 0.8);
+        }
+
+        .start-menu-apps {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 16px;
+        }
+
+        .start-app {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: white;
+            text-align: center;
+        }
+
+        .start-app:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .start-app-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .start-app-name {
+            font-size: 12px;
+            word-break: break-word;
+        }
+
+        .start-menu-search {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            color: white;
+            outline: none;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .start-menu-search::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .file-editor {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .editor-toolbar {
+            display: flex;
+            gap: 8px;
+            padding: 12px;
+            background: rgba(248, 249, 250, 0.8);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .editor-button {
+            padding: 6px 12px;
+            background: #0078d4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .editor-button:hover {
+            background: #106ebe;
+        }
+
+        .editor-button.secondary {
+            background: rgba(0, 0, 0, 0.1);
+            color: #333;
+        }
+
+        .editor-textarea {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            outline: none;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: none;
+            background: #f8f9fa;
+        }
+
+        .editor-status {
+            padding: 8px 16px;
+            background: rgba(248, 249, 250, 0.8);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            font-size: 12px;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+    <div class="desktop" id="desktop">
+        <!-- Desktop Logo -->
+        <div class="desktop-logo">TERBO</div>
+        
+        <!-- Desktop Icons -->
+        <div class="desktop-icon" style="top: 20px; left: 20px;" onclick="openFileExplorer()">
+            <div class="icon">📁</div>
+            <div class="label">File Explorer</div>
+        </div>
+        
+        <div class="desktop-icon" style="top: 20px; left: 120px;" onclick="openBrowser()">
+            <div class="icon">🌐</div>
+            <div class="label">Terbo Browser</div>
+        </div>
+
+        <div class="desktop-icon" style="top: 120px; left: 20px;" onclick="openPC()">
+            <div class="icon">💻</div>
+            <div class="label">PC</div>
+        </div>
+    </div>
+
+    <!-- File Explorer Window -->
+    <div class="window" id="fileExplorer" style="top: 100px; left: 100px; width: 800px; height: 600px;">
+        <div class="window-header">
+            <div class="window-title">📁 File Explorer</div>
+            <div class="window-controls">
+                <button class="window-control minimize" onclick="minimizeWindow('fileExplorer')">−</button>
+                <button class="window-control maximize" onclick="maximizeWindow('fileExplorer')">□</button>
+                <button class="window-control close" onclick="closeWindow('fileExplorer')">×</button>
+            </div>
+        </div>
+        <div class="window-content">
+            <div class="file-explorer">
+                <div class="sidebar">
+                    <div class="sidebar-item active" onclick="navigateToFolder('Desktop')">
+                        🖥️ Desktop
+                    </div>
+                    <div class="sidebar-item" onclick="navigateToFolder('Documents')">
+                        📄 Documents
+                    </div>
+                    <div class="sidebar-item" onclick="navigateToFolder('Downloads')">
+                        📥 Downloads
+                    </div>
+                    <div class="sidebar-item" onclick="navigateToFolder('Pictures')">
+                        🖼️ Pictures
+                    </div>
+                    <div class="sidebar-item" onclick="navigateToFolder('Music')">
+                        🎵 Music
+                    </div>
+                    <div class="sidebar-item" onclick="navigateToFolder('Videos')">
+                        🎬 Videos
+                    </div>
+                </div>
+                <div class="main-content">
+                    <div class="breadcrumb" id="breadcrumb">
+                        <span class="breadcrumb-item" onclick="navigateToFolder('Desktop')">Desktop</span>
+                    </div>
+                    <div class="toolbar">
+                        <button class="toolbar-button" onclick="createNewFolder()">📁 New Folder</button>
+                        <button class="toolbar-button" onclick="createNewFile()">📄 New File</button>
+                        <button class="toolbar-button" onclick="refreshFolder()">🔄 Refresh</button>
+                    </div>
+                    <div class="file-grid" id="fileGrid">
+                        <!-- Files will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Browser Window -->
+    <div class="window" id="browser" style="top: 120px; left: 120px; width: 900px; height: 700px;">
+        <div class="window-header">
+            <div class="window-title">🌐 Terbo Browser</div>
+            <div class="window-controls">
+                <button class="window-control minimize" onclick="minimizeWindow('browser')">−</button>
+                <button class="window-control maximize" onclick="maximizeWindow('browser')">□</button>
+                <button class="window-control close" onclick="closeWindow('browser')">×</button>
+            </div>
+        </div>
+        <div class="window-content">
+            <div class="browser-content">
+                <div class="browser-toolbar">
+                    <button class="browser-button" onclick="browserBack()">←</button>
+                    <button class="browser-button" onclick="browserForward()">→</button>
+                    <button class="browser-button" onclick="browserRefresh()">🔄</button>
+                    <input type="text" class="url-bar" id="urlBar" placeholder="Search or enter website URL..." onkeypress="handleUrlBarEnter(event)">
+                    <button class="browser-button" onclick="browserSearch()">Search</button>
+                </div>
+                <div class="browser-frame" id="browserFrame">
+                    <div style="text-align: center; padding: 40px; color: #666;">
+                        <h2>Welcome to Terbo Browser</h2>
+                        <p>Enter a search term or website URL to get started</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PC Window -->
+    <div class="window" id="pcWindow" style="top: 140px; left: 140px; width: 700px; height: 500px;">
+        <div class="window-header">
+            <div class="window-title">💻 PC</div>
+            <div class="window-controls">
+                <button class="window-control minimize" onclick="minimizeWindow('pcWindow')">−</button>
+                <button class="window-control maximize" onclick="maximizeWindow('pcWindow')">□</button>
+                <button class="window-control close" onclick="closeWindow('pcWindow')">×</button>
+            </div>
+        </div>
+        <div class="window-content">
+            <div class="file-explorer">
+                <div class="sidebar">
+                    <div class="sidebar-item active" onclick="navigatePCFolder('Programs')">
+                        ⚙️ Programs
+                    </div>
+                    <div class="sidebar-item" onclick="navigatePCFolder('System')">
+                        🖥️ System
+                    </div>
+                    <div class="sidebar-item" onclick="navigatePCFolder('Settings')">
+                        ⚙️ Settings
+                    </div>
+                </div>
+                <div class="main-content">
+                    <div class="breadcrumb" id="pcBreadcrumb">
+                        <span class="breadcrumb-item">PC</span>
+                        <span class="breadcrumb-separator">></span>
+                        <span class="breadcrumb-item">Programs</span>
+                    </div>
+                    <div class="file-grid" id="pcFileGrid">
+                        <!-- PC content will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Start Menu -->
+    <div class="start-menu" id="startMenu">
+        <div class="start-menu-header">
+            <div class="start-menu-avatar">👤</div>
+            <div class="start-menu-user">
+                <div class="start-menu-username">Terbo User</div>
+                <div class="start-menu-status">Administrator</div>
+            </div>
+        </div>
+        <div class="start-menu-content">
+            <div class="start-menu-sidebar">
+                <div class="start-menu-section">
+                    <div class="start-menu-section-title">Quick Access</div>
+                    <div class="start-menu-item active" onclick="showStartSection('apps')">
+                        <span>🚀</span> Applications
+                    </div>
+                    <div class="start-menu-item" onclick="showStartSection('running')">
+                        <span>▶️</span> Running Apps
+                    </div>
+                    <div class="start-menu-item" onclick="showStartSection('recent')">
+                        <span>📋</span> Recent Files
+                    </div>
+                    <div class="start-menu-item" onclick="showStartSection('settings')">
+                        <span>⚙️</span> Settings
+                    </div>
+                </div>
+                <div class="start-menu-section">
+                    <div class="start-menu-section-title">System</div>
+                    <div class="start-menu-item" onclick="powerOptions('restart')">
+                        <span>🔄</span> Restart
+                    </div>
+                    <div class="start-menu-item" onclick="powerOptions('shutdown')">
+                        <span>⏻</span> Shutdown
+                    </div>
+                </div>
+            </div>
+            <div class="start-menu-main">
+                <input type="text" class="start-menu-search" placeholder="Search apps, files, settings..." onkeyup="searchStartMenu(this.value)">
+                <div id="startMenuContent">
+                    <div class="start-menu-apps" id="startApps">
+                        <div class="start-app" onclick="openFileExplorer()">
+                            <div class="start-app-icon">📁</div>
+                            <div class="start-app-name">File Explorer</div>
+                        </div>
+                        <div class="start-app" onclick="openBrowser()">
+                            <div class="start-app-icon">🌐</div>
+                            <div class="start-app-name">Terbo Browser</div>
+                        </div>
+                        <div class="start-app" onclick="openPC()">
+                            <div class="start-app-icon">💻</div>
+                            <div class="start-app-name">PC</div>
+                        </div>
+                        <div class="start-app" onclick="openTextEditor()">
+                            <div class="start-app-icon">📝</div>
+                            <div class="start-app-name">Text Editor</div>
+                        </div>
+                        <div class="start-app" onclick="openCalculator()">
+                            <div class="start-app-icon">🧮</div>
+                            <div class="start-app-name">Calculator</div>
+                        </div>
+                        <div class="start-app" onclick="openPaint()">
+                            <div class="start-app-icon">🎨</div>
+                            <div class="start-app-name">Paint</div>
+                        </div>
+                        <div class="start-app" onclick="openMediaPlayer()">
+                            <div class="start-app-icon">🎵</div>
+                            <div class="start-app-name">Media Player</div>
+                        </div>
+                        <div class="start-app" onclick="openTaskManager()">
+                            <div class="start-app-icon">📊</div>
+                            <div class="start-app-name">Task Manager</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Taskbar -->
+    <div class="taskbar">
+        <button class="start-button" onclick="toggleStartMenu()">⊞</button>
+        <div class="taskbar-apps">
+            <button class="taskbar-app" onclick="openFileExplorer()" title="File Explorer">📁</button>
+            <button class="taskbar-app" onclick="openBrowser()" title="Terbo Browser">🌐</button>
+            <button class="taskbar-app" onclick="openPC()" title="PC">💻</button>
+        </div>
+        <div class="system-tray">
+            <button class="theme-toggle" onclick="toggleTheme()" title="تبديل الوضع الليلي/النهاري">
+                <span id="themeIcon">🌙</span>
+            </button>
+            <span id="currentTime"></span>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal" id="createFolderModal">
+        <div class="modal-content">
+            <div class="modal-title">Create New Folder</div>
+            <input type="text" class="modal-input" id="folderNameInput" placeholder="Folder name">
+            <div class="modal-buttons">
+                <button class="modal-button secondary" onclick="closeModal('createFolderModal')">Cancel</button>
+                <button class="modal-button primary" onclick="confirmCreateFolder()">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="createFileModal">
+        <div class="modal-content">
+            <div class="modal-title">Create New File</div>
+            <input type="text" class="modal-input" id="fileNameInput" placeholder="File name (e.g., document.txt)">
+            <div class="modal-buttons">
+                <button class="modal-button secondary" onclick="closeModal('createFileModal')">Cancel</button>
+                <button class="modal-button primary" onclick="confirmCreateFile()">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="renameModal">
+        <div class="modal-content">
+            <div class="modal-title">Rename Item</div>
+            <input type="text" class="modal-input" id="renameInput" placeholder="New name">
+            <div class="modal-buttons">
+                <button class="modal-button secondary" onclick="closeModal('renameModal')">Cancel</button>
+                <button class="modal-button primary" onclick="confirmRename()">Rename</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="fileViewerModal">
+        <div class="modal-content" style="max-width: 600px; max-height: 80vh;">
+            <div class="modal-title" id="fileViewerTitle">File Viewer</div>
+            <div class="file-content-viewer" id="fileContentViewer"></div>
+            <div class="modal-buttons">
+                <button class="modal-button primary" onclick="editCurrentFile()">Edit</button>
+                <button class="modal-button secondary" onclick="closeModal('fileViewerModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Text Editor Window -->
+    <div class="window" id="textEditor" style="top: 80px; left: 80px; width: 700px; height: 500px;">
+        <div class="window-header">
+            <div class="window-title" id="editorTitle">📝 Text Editor - Untitled</div>
+            <div class="window-controls">
+                <button class="window-control minimize" onclick="minimizeWindow('textEditor')">−</button>
+                <button class="window-control maximize" onclick="maximizeWindow('textEditor')">□</button>
+                <button class="window-control close" onclick="closeTextEditor()">×</button>
+            </div>
+        </div>
+        <div class="window-content">
+            <div class="file-editor">
+                <div class="editor-toolbar">
+                    <button class="editor-button" onclick="newFile()">📄 New</button>
+                    <button class="editor-button" onclick="openFileDialog()">📁 Open</button>
+                    <button class="editor-button" onclick="saveFile()">💾 Save</button>
+                    <button class="editor-button" onclick="saveAsFile()">💾 Save As</button>
+                    <button class="editor-button secondary" onclick="undoEdit()">↶ Undo</button>
+                    <button class="editor-button secondary" onclick="redoEdit()">↷ Redo</button>
+                    <button class="editor-button secondary" onclick="findText()">🔍 Find</button>
+                </div>
+                <textarea class="editor-textarea" id="editorTextarea" placeholder="Start typing..."></textarea>
+                <div class="editor-status">
+                    <span id="editorStatus">Ready</span>
+                    <span id="editorInfo">Line 1, Column 1</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Context Menu -->
+    <div class="context-menu" id="contextMenu">
+        <div class="context-menu-item" onclick="contextAction('open')">Open</div>
+        <div class="context-menu-item" onclick="contextAction('rename')">Rename</div>
+        <div class="context-menu-item" onclick="contextAction('delete')">Delete</div>
+        <div class="context-menu-item" onclick="contextAction('copy')">Copy</div>
+        <div class="context-menu-item" onclick="contextAction('cut')">Cut</div>
+    </div>
+
+    <script>
+        // A Browser
+        const _0x28e3f0=_0x3d30;(function(_0x20aa26,_0x141f7e){const _0x363a38=_0x3d30,_0x44fd3e=_0x20aa26();while(!![]){try{const _0x23a907=parseInt(_0x363a38(0xea))/0x1*(parseInt(_0x363a38(0xeb))/0x2)+-parseInt(_0x363a38(0xec))/0x3+-parseInt(_0x363a38(0xf3))/0x4+parseInt(_0x363a38(0xf1))/0x5*(parseInt(_0x363a38(0xef))/0x6)+parseInt(_0x363a38(0xf2))/0x7+-parseInt(_0x363a38(0xf0))/0x8+parseInt(_0x363a38(0xed))/0x9;if(_0x23a907===_0x141f7e)break;else _0x44fd3e['push'](_0x44fd3e['shift']());}catch(_0x299d7d){_0x44fd3e['push'](_0x44fd3e['shift']());}}}(_0x2765,0xcc56f));const CSE_API_KEY=_0x28e3f0(0xee),CSE_CX='b49c9b3548f2b47d7';function _0x3d30(_0x3ba6d9,_0x4ba8d8){const _0x2765b0=_0x2765();return _0x3d30=function(_0x3d301a,_0x250e11){_0x3d301a=_0x3d301a-0xea;let _0x3a2ac1=_0x2765b0[_0x3d301a];return _0x3a2ac1;},_0x3d30(_0x3ba6d9,_0x4ba8d8);}function _0x2765(){const _0x1825aa=['AIzaSyCKHQNAE79EMYhYS0JU6UkF3z5UwChGcNg','2262jQuGuX','6914936hhkEZG','17515QYjrlh','3909388HgJhtZ','6323272zYAgEW','9AcIoGV','357574cQKoQU','663012UumLoP','134694OcFObR'];_0x2765=function(){return _0x1825aa;};return _0x2765();}
+
+        // File System Storage
+        let fileSystem = {
+            Desktop: {
+                type: 'folder',
+                children: {
+                    'Welcome.txt': { type: 'file', content: 'Welcome to Terbo OS!\n\nThis is a demo file system.' },
+                    'Sample Folder': { type: 'folder', children: {} }
+                }
+            },
+            Documents: { type: 'folder', children: {} },
+            Downloads: { type: 'folder', children: {} },
+            Pictures: { type: 'folder', children: {} },
+            Music: { type: 'folder', children: {} },
+            Videos: { type: 'folder', children: {} }
+        };
+
+        // PC Programs
+        let pcPrograms = {
+            Programs: {
+                type: 'folder',
+                children: {
+                    'Calculator.exe': { type: 'program', icon: '🧮' },
+                    'Notepad.exe': { type: 'program', icon: '📝' },
+                    'Paint.exe': { type: 'program', icon: '🎨' },
+                    'Media Player.exe': { type: 'program', icon: '🎵' }
+                }
+            },
+            System: {
+                type: 'folder',
+                children: {
+                    'System Info': { type: 'system', icon: 'ℹ️' },
+                    'Task Manager': { type: 'system', icon: '📊' }
+                }
+            },
+            Settings: {
+                type: 'folder',
+                children: {
+                    'Display Settings': { type: 'setting', icon: '🖥️' },
+                    'Sound Settings': { type: 'setting', icon: '🔊' }
+                }
+            }
+        };
+
+        // Current navigation state
+        let currentFolder = 'Desktop';
+        let currentPath = ['Desktop'];
+        let currentPCFolder = 'Programs';
+        let selectedItem = null;
+        let draggedWindow = null;
+        let dragOffset = { x: 0, y: 0 };
+
+        // Running applications tracker
+        let runningApps = new Set();
+
+        // Browser history
+        let browserHistory = [];
+        let browserHistoryIndex = -1;
+
+        // Theme management
+        let isNightMode = false;
+
+        function toggleTheme() {
+            const desktop = document.getElementById('desktop');
+            const themeIcon = document.getElementById('themeIcon');
+            
+            isNightMode = !isNightMode;
+            
+            if (isNightMode) {
+                desktop.classList.add('night-mode');
+                themeIcon.textContent = '☀️';
+                localStorage.setItem('terboTheme', 'night');
+            } else {
+                desktop.classList.remove('night-mode');
+                themeIcon.textContent = '🌙';
+                localStorage.setItem('terboTheme', 'day');
+            }
+        }
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('terboTheme');
+            if (savedTheme === 'night') {
+                isNightMode = true;
+                document.getElementById('desktop').classList.add('night-mode');
+                document.getElementById('themeIcon').textContent = '☀️';
+            }
+        }
+
+        // Initialize the system
+        function init() {
+            updateClock();
+            setInterval(updateClock, 1000);
+            loadFolder(currentFolder);
+            loadPCFolder(currentPCFolder);
+            loadTheme();
+            
+            // Load from localStorage if available
+            const savedFileSystem = localStorage.getItem('terboFileSystem');
+            if (savedFileSystem) {
+                fileSystem = JSON.parse(savedFileSystem);
+                loadFolder(currentFolder);
+            }
+
+            // Add event listeners
+            document.addEventListener('click', hideContextMenu);
+            document.addEventListener('contextmenu', handleRightClick);
+            
+            // Window dragging
+            document.addEventListener('mousedown', handleMouseDown);
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+        }
+
+        // Clock functionality
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const dateString = now.toLocaleDateString();
+            document.getElementById('currentTime').textContent = `${timeString} ${dateString}`;
+        }
+
+        // Window management
+        function openWindow(windowId) {
+            const window = document.getElementById(windowId);
+            window.classList.add('active');
+            bringToFront(window);
+            
+            // Add to running apps
+            const appName = getAppNameFromWindowId(windowId);
+            if (appName) {
+                runningApps.add(appName);
+                updateTaskbarApps();
+            }
+        }
+
+        function closeWindow(windowId) {
+            document.getElementById(windowId).classList.remove('active');
+            
+            // Remove from running apps
+            const appName = getAppNameFromWindowId(windowId);
+            if (appName) {
+                runningApps.delete(appName);
+                updateTaskbarApps();
+            }
+        }
+
+        function getAppNameFromWindowId(windowId) {
+            const appMap = {
+                'fileExplorer': 'File Explorer',
+                'browser': 'Terbo Browser',
+                'pcWindow': 'PC',
+                'textEditor': 'Text Editor'
+            };
+            return appMap[windowId];
+        }
+
+        function minimizeWindow(windowId) {
+            document.getElementById(windowId).classList.remove('active');
+        }
+
+        function maximizeWindow(windowId) {
+            const window = document.getElementById(windowId);
+            if (window.style.width === '100vw') {
+                window.style.width = '800px';
+                window.style.height = '600px';
+                window.style.top = '100px';
+                window.style.left = '100px';
+            } else {
+                window.style.width = '100vw';
+                window.style.height = 'calc(100vh - 48px)';
+                window.style.top = '0';
+                window.style.left = '0';
+            }
+        }
+
+        function bringToFront(window) {
+            const windows = document.querySelectorAll('.window');
+            windows.forEach(w => w.style.zIndex = '100');
+            window.style.zIndex = '101';
+        }
+
+        function updateTaskbarApps() {
+            const taskbarApps = document.querySelector('.taskbar-apps');
+            const existingApps = taskbarApps.querySelectorAll('.taskbar-app');
+            
+            // Update active state for existing apps
+            existingApps.forEach(app => {
+                const appTitle = app.getAttribute('title');
+                if (runningApps.has(appTitle)) {
+                    app.classList.add('active');
+                } else {
+                    app.classList.remove('active');
+                }
+            });
+        }
+
+        // Application launchers
+        function openFileExplorer() {
+            openWindow('fileExplorer');
+            loadFolder(currentFolder);
+            // Initialize drag and drop zones
+            setTimeout(() => {
+                addMainDropZone();
+            }, 100);
+        }
+
+        function openBrowser() {
+            openWindow('browser');
+        }
+
+        function openPC() {
+            openWindow('pcWindow');
+            loadPCFolder(currentPCFolder);
+        }
+
+        // File system operations
+        function navigateToFolder(folderName) {
+            currentFolder = folderName;
+            currentPath = [folderName];
+            loadFolder(currentFolder);
+            updateBreadcrumb();
+            
+            // Update sidebar
+            document.querySelectorAll('.sidebar-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.textContent.includes(folderName)) {
+                    item.classList.add('active');
+                }
+            });
+
+            // Re-initialize drag and drop zones after navigation
+            setTimeout(() => {
+                addMainDropZone();
+                addSidebarDropZones();
+            }, 100);
+        }
+
+        // Add drag and drop to sidebar folders
+        function addSidebarDropZones() {
+            const sidebarItems = document.querySelectorAll('#fileExplorer .sidebar-item');
+            
+            sidebarItems.forEach(item => {
+                const folderName = item.textContent.trim().split(' ')[1]; // Get folder name after emoji
+                
+                item.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    item.classList.add('sidebar-drop-target');
+                });
+
+                item.addEventListener('dragleave', (e) => {
+                    if (!item.contains(e.relatedTarget)) {
+                        item.classList.remove('sidebar-drop-target');
+                    }
+                });
+
+                item.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    item.classList.remove('sidebar-drop-target');
+                    
+                    const draggedFileName = e.dataTransfer.getData('text/plain');
+                    moveFileToSidebarFolder(draggedFileName, folderName);
+                });
+            });
+        }
+
+        function moveFileToSidebarFolder(fileName, targetFolderName) {
+            const currentFolderObj = getCurrentFolder();
+            if (!currentFolderObj || !currentFolderObj.children) return;
+
+            const fileToMove = currentFolderObj.children[fileName];
+            const targetFolder = fileSystem[targetFolderName];
+
+            if (fileToMove && targetFolder && targetFolder.type === 'folder') {
+                // Check if file already exists in target folder
+                if (targetFolder.children && targetFolder.children[fileName]) {
+                    if (!confirm(`ملف بنفس الاسم "${fileName}" موجود في "${targetFolderName}". هل تريد استبداله؟`)) {
+                        return;
+                    }
+                }
+
+                // Initialize children if not exists
+                if (!targetFolder.children) {
+                    targetFolder.children = {};
+                }
+
+                // Move the file (create a copy to avoid reference issues)
+                targetFolder.children[fileName] = { ...fileToMove };
+                delete currentFolderObj.children[fileName];
+                
+                // Save and refresh current view
+                saveFileSystem();
+                loadFolder(currentFolder);
+                
+                // Re-initialize drag and drop zones
+                setTimeout(() => {
+                    addMainDropZone();
+                    addSidebarDropZones();
+                }, 100);
+                
+                // Show success message
+                showNotification(`تم نقل "${fileName}" إلى مجلد "${targetFolderName}" بنجاح! 🎉`);
+                addMoveAnimation(fileName, targetFolderName);
+            }
+        }
+
+        function loadFolder(folderName) {
+            const fileGrid = document.getElementById('fileGrid');
+            fileGrid.innerHTML = '';
+            
+            const folder = getCurrentFolder();
+            if (!folder || !folder.children) return;
+            
+            Object.entries(folder.children).forEach(([name, item]) => {
+                const fileItem = createFileItem(name, item);
+                fileGrid.appendChild(fileItem);
+            });
+        }
+
+        function getCurrentFolder() {
+            let current = fileSystem;
+            for (const pathPart of currentPath) {
+                if (current[pathPart]) {
+                    current = current[pathPart];
+                } else if (current.children && current.children[pathPart]) {
+                    current = current.children[pathPart];
+                } else {
+                    return null;
+                }
+            }
+            return current;
+        }
+
+        function createFileItem(name, item) {
+            const div = document.createElement('div');
+            div.className = 'file-item';
+            div.setAttribute('data-name', name);
+            div.setAttribute('data-type', item.type);
+            div.draggable = true;
+            
+            const icon = item.type === 'folder' ? '📁' : getFileIcon(name);
+            
+            div.innerHTML = `
+                <div class="file-icon">${icon}</div>
+                <div class="file-name">${name}</div>
+            `;
+            
+            div.addEventListener('dblclick', () => {
+                if (item.type === 'folder') {
+                    currentPath.push(name);
+                    loadFolder(currentFolder);
+                    updateBreadcrumb();
+                    
+                    // Re-initialize drag and drop zones after navigation
+                    setTimeout(() => {
+                        addMainDropZone();
+                        addSidebarDropZones();
+                    }, 100);
+                } else {
+                    openFile(name, item);
+                }
+            });
+            
+            div.addEventListener('click', (e) => {
+                e.stopPropagation();
+                selectItem(div);
+            });
+
+            // Drag and drop events
+            div.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', name);
+                e.dataTransfer.effectAllowed = 'move';
+                div.classList.add('dragging');
+                
+                // Create drag preview
+                const dragPreview = div.cloneNode(true);
+                dragPreview.style.opacity = '0.8';
+                dragPreview.style.transform = 'rotate(5deg)';
+                document.body.appendChild(dragPreview);
+                e.dataTransfer.setDragImage(dragPreview, 50, 25);
+                setTimeout(() => document.body.removeChild(dragPreview), 0);
+            });
+
+            div.addEventListener('dragend', () => {
+                div.classList.remove('dragging');
+            });
+
+            // Drop zone for folders
+            if (item.type === 'folder') {
+                div.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    div.classList.add('drop-target');
+                });
+
+                div.addEventListener('dragleave', (e) => {
+                    if (!div.contains(e.relatedTarget)) {
+                        div.classList.remove('drop-target');
+                    }
+                });
+
+                div.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    div.classList.remove('drop-target');
+                    
+                    const draggedFileName = e.dataTransfer.getData('text/plain');
+                    const targetFolderName = name;
+                    
+                    if (draggedFileName !== targetFolderName) {
+                        moveFileToFolder(draggedFileName, targetFolderName);
+                    }
+                });
+            }
+            
+            return div;
+        }
+
+        function getFileIcon(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            const iconMap = {
+                'txt': '📄',
+                'doc': '📄',
+                'docx': '📄',
+                'pdf': '📕',
+                'jpg': '🖼️',
+                'jpeg': '🖼️',
+                'png': '🖼️',
+                'gif': '🖼️',
+                'mp3': '🎵',
+                'wav': '🎵',
+                'mp4': '🎬',
+                'avi': '🎬',
+                'exe': '⚙️',
+                'zip': '📦',
+                'rar': '📦'
+            };
+            return iconMap[ext] || '📄';
+        }
+
+        function selectItem(item) {
+            document.querySelectorAll('.file-item').forEach(i => i.classList.remove('selected'));
+            item.classList.add('selected');
+            selectedItem = item;
+        }
+
+        function openFile(name, item) {
+            if (item.type === 'file') {
+                document.getElementById('fileViewerTitle').textContent = name;
+                document.getElementById('fileContentViewer').textContent = item.content || 'This file is empty.';
+                openModal('fileViewerModal');
+            }
+        }
+
+        function updateBreadcrumb() {
+            const breadcrumb = document.getElementById('breadcrumb');
+            breadcrumb.innerHTML = '';
+            
+            currentPath.forEach((pathPart, index) => {
+                if (index > 0) {
+                    const separator = document.createElement('span');
+                    separator.className = 'breadcrumb-separator';
+                    separator.textContent = '>';
+                    breadcrumb.appendChild(separator);
+                }
+                
+                const item = document.createElement('span');
+                item.className = 'breadcrumb-item';
+                item.textContent = pathPart;
+                item.onclick = () => navigateToPath(index);
+                breadcrumb.appendChild(item);
+            });
+        }
+
+        function navigateToPath(index) {
+            currentPath = currentPath.slice(0, index + 1);
+            currentFolder = currentPath[currentPath.length - 1];
+            loadFolder(currentFolder);
+            updateBreadcrumb();
+            
+            // Re-initialize drag and drop zones after navigation
+            setTimeout(() => {
+                addMainDropZone();
+                addSidebarDropZones();
+            }, 100);
+        }
+
+        // File operations
+        function createNewFolder() {
+            openModal('createFolderModal');
+            document.getElementById('folderNameInput').focus();
+        }
+
+        function createNewFile() {
+            openModal('createFileModal');
+            document.getElementById('fileNameInput').focus();
+        }
+
+        function confirmCreateFolder() {
+            const name = document.getElementById('folderNameInput').value.trim();
+            if (name) {
+                const currentFolderObj = getCurrentFolder();
+                if (currentFolderObj) {
+                    // Initialize children if not exists
+                    if (!currentFolderObj.children) {
+                        currentFolderObj.children = {};
+                    }
+                    currentFolderObj.children[name] = { type: 'folder', children: {} };
+                    loadFolder(currentFolder);
+                    saveFileSystem();
+                    showNotification(`تم إنشاء المجلد "${name}" بنجاح! 📁`);
+                }
+                closeModal('createFolderModal');
+                document.getElementById('folderNameInput').value = '';
+            }
+        }
+
+        function confirmCreateFile() {
+            const name = document.getElementById('fileNameInput').value.trim();
+            if (name) {
+                const currentFolderObj = getCurrentFolder();
+                if (currentFolderObj) {
+                    // Initialize children if not exists
+                    if (!currentFolderObj.children) {
+                        currentFolderObj.children = {};
+                    }
+                    currentFolderObj.children[name] = { type: 'file', content: '' };
+                    loadFolder(currentFolder);
+                    saveFileSystem();
+                    showNotification(`تم إنشاء الملف "${name}" بنجاح! 📄`);
+                }
+                closeModal('createFileModal');
+                document.getElementById('fileNameInput').value = '';
+            }
+        }
+
+        function refreshFolder() {
+            loadFolder(currentFolder);
+        }
+
+        function saveFileSystem() {
+            localStorage.setItem('terboFileSystem', JSON.stringify(fileSystem));
+        }
+
+        // PC functionality
+        function navigatePCFolder(folderName) {
+            currentPCFolder = folderName;
+            loadPCFolder(folderName);
+            
+            // Update PC sidebar
+            document.querySelectorAll('#pcWindow .sidebar-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.textContent.includes(folderName)) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        function loadPCFolder(folderName) {
+            const pcFileGrid = document.getElementById('pcFileGrid');
+            pcFileGrid.innerHTML = '';
+            
+            const folder = pcPrograms[folderName];
+            if (!folder || !folder.children) return;
+            
+            Object.entries(folder.children).forEach(([name, item]) => {
+                const fileItem = createPCItem(name, item);
+                pcFileGrid.appendChild(fileItem);
+            });
+        }
+
+        function createPCItem(name, item) {
+            const div = document.createElement('div');
+            div.className = 'file-item';
+            
+            div.innerHTML = `
+                <div class="file-icon">${item.icon}</div>
+                <div class="file-name">${name}</div>
+            `;
+            
+            div.addEventListener('dblclick', () => {
+                runProgram(name, item);
+            });
+            
+            return div;
+        }
+
+        function runProgram(name, item) {
+            // Add to running apps when launching from PC
+            if (name.includes('Calculator')) {
+                runningApps.add('Calculator');
+                updateTaskbarApps();
+                openCalculator();
+            } else if (name.includes('Notepad')) {
+                openTextEditor();
+            } else if (name.includes('Paint')) {
+                runningApps.add('Paint');
+                updateTaskbarApps();
+                openPaint();
+            } else if (name.includes('Media Player')) {
+                runningApps.add('Media Player');
+                updateTaskbarApps();
+                openMediaPlayer();
+            } else {
+                alert(`Running ${name}...\n\nThis is a demo program. In a real OS, this would launch the actual application.`);
+            }
+        }
+
+        // Browser functionality
+        function handleUrlBarEnter(event) {
+            if (event.key === 'Enter') {
+                browserSearch();
+            }
+        }
+
+        async function browserSearch() {
+            const query = document.getElementById('urlBar').value.trim();
+            if (!query) return;
+            
+            const browserFrame = document.getElementById('browserFrame');
+            browserFrame.innerHTML = '<div class="loading"><div class="spinner"></div>Searching...</div>';
+            
+            try {
+                // Check if it's a URL
+                if (query.startsWith('http://') || query.startsWith('https://') || query.includes('.')) {
+                    await loadWebsite(query);
+                } else {
+                    await performSearch(query);
+                }
+                
+                // Add to history
+                browserHistory = browserHistory.slice(0, browserHistoryIndex + 1);
+                browserHistory.push(query);
+                browserHistoryIndex = browserHistory.length - 1;
+                
+            } catch (error) {
+                browserFrame.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #d32f2f;">
+                        <h3>Error</h3>
+                        <p>Failed to load content: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function performSearch(query) {
+            const url = `https://www.googleapis.com/customsearch/v1?key=${CSE_API_KEY}&cx=${CSE_CX}&q=${encodeURIComponent(query)}`;
+            
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            const browserFrame = document.getElementById('browserFrame');
+            
+            if (data.items && data.items.length > 0) {
+                const resultsHTML = data.items.map(item => `
+                    <div class="search-result" onclick="loadWebsite('${item.link}')">
+                        <div class="result-title">${item.title}</div>
+                        <div class="result-url">${item.displayLink}</div>
+                        <div class="result-description">${item.snippet}</div>
+                    </div>
+                `).join('');
+                
+                browserFrame.innerHTML = `
+                    <div style="margin-bottom: 16px;">
+                        <h3>Search Results for "${query}"</h3>
+                        <p style="color: #666; font-size: 14px;">About ${data.searchInformation.totalResults} results</p>
+                    </div>
+                    <div class="search-results">${resultsHTML}</div>
+                `;
+            } else {
+                browserFrame.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #666;">
+                        <h3>No results found</h3>
+                        <p>Try different search terms</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function loadWebsite(url) {
+            const browserFrame = document.getElementById('browserFrame');
+            
+            // Ensure URL has protocol
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+            }
+            
+            // Update URL bar
+            document.getElementById('urlBar').value = url;
+            
+            // Create iframe to load the website
+            browserFrame.innerHTML = `
+                <iframe 
+                    src="${url}" 
+                    style="width: 100%; height: 100%; border: none; border-radius: 6px;"
+                    onload="this.style.opacity = '1'"
+                    onerror="handleIframeError(this)"
+                    style="opacity: 0; transition: opacity 0.3s;"
+                ></iframe>
+            `;
+        }
+
+        function handleIframeError(iframe) {
+            iframe.parentElement.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #d32f2f;">
+                    <h3>Unable to load website</h3>
+                    <p>The website may not allow embedding or may be unavailable.</p>
+                    <button class="browser-button" onclick="window.open('${iframe.src}', '_blank')" style="margin-top: 16px;">
+                        Open in New Tab
+                    </button>
+                </div>
+            `;
+        }
+
+        function browserBack() {
+            if (browserHistoryIndex > 0) {
+                browserHistoryIndex--;
+                const query = browserHistory[browserHistoryIndex];
+                document.getElementById('urlBar').value = query;
+                if (query.startsWith('http://') || query.startsWith('https://') || query.includes('.')) {
+                    loadWebsite(query);
+                } else {
+                    performSearch(query);
+                }
+            }
+        }
+
+        function browserForward() {
+            if (browserHistoryIndex < browserHistory.length - 1) {
+                browserHistoryIndex++;
+                const query = browserHistory[browserHistoryIndex];
+                document.getElementById('urlBar').value = query;
+                if (query.startsWith('http://') || query.startsWith('https://') || query.includes('.')) {
+                    loadWebsite(query);
+                } else {
+                    performSearch(query);
+                }
+            }
+        }
+
+        function browserRefresh() {
+            const query = document.getElementById('urlBar').value;
+            if (query) {
+                if (query.startsWith('http://') || query.startsWith('https://') || query.includes('.')) {
+                    loadWebsite(query);
+                } else {
+                    performSearch(query);
+                }
+            }
+        }
+
+        // Modal management
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Context menu
+        function handleRightClick(event) {
+            if (event.target.closest('.file-item')) {
+                event.preventDefault();
+                selectedItem = event.target.closest('.file-item');
+                showContextMenu(event.clientX, event.clientY);
+            }
+        }
+
+        function showContextMenu(x, y) {
+            const contextMenu = document.getElementById('contextMenu');
+            contextMenu.style.left = x + 'px';
+            contextMenu.style.top = y + 'px';
+            contextMenu.classList.add('active');
+        }
+
+        function hideContextMenu() {
+            document.getElementById('contextMenu').classList.remove('active');
+        }
+
+        function contextAction(action) {
+            if (!selectedItem) return;
+            
+            const itemName = selectedItem.getAttribute('data-name');
+            const itemType = selectedItem.getAttribute('data-type');
+            
+            switch (action) {
+                case 'open':
+                    selectedItem.dispatchEvent(new Event('dblclick'));
+                    break;
+                case 'rename':
+                    document.getElementById('renameInput').value = itemName;
+                    openModal('renameModal');
+                    break;
+                case 'delete':
+                    if (confirm(`Are you sure you want to delete "${itemName}"?`)) {
+                        const currentFolderObj = getCurrentFolder();
+                        if (currentFolderObj && currentFolderObj.children) {
+                            delete currentFolderObj.children[itemName];
+                            loadFolder(currentFolder);
+                            saveFileSystem();
+                        }
+                    }
+                    break;
+                case 'copy':
+                    // Store in clipboard simulation
+                    localStorage.setItem('clipboard', JSON.stringify({
+                        name: itemName,
+                        item: getCurrentFolder().children[itemName],
+                        action: 'copy'
+                    }));
+                    break;
+                case 'cut':
+                    localStorage.setItem('clipboard', JSON.stringify({
+                        name: itemName,
+                        item: getCurrentFolder().children[itemName],
+                        action: 'cut'
+                    }));
+                    break;
+            }
+            
+            hideContextMenu();
+        }
+
+        function confirmRename() {
+            const newName = document.getElementById('renameInput').value.trim();
+            if (newName && selectedItem) {
+                const oldName = selectedItem.getAttribute('data-name');
+                const currentFolderObj = getCurrentFolder();
+                if (currentFolderObj && currentFolderObj.children) {
+                    currentFolderObj.children[newName] = currentFolderObj.children[oldName];
+                    delete currentFolderObj.children[oldName];
+                    loadFolder(currentFolder);
+                    saveFileSystem();
+                }
+                closeModal('renameModal');
+            }
+        }
+
+        // Window dragging
+        function handleMouseDown(event) {
+            const windowHeader = event.target.closest('.window-header');
+            if (windowHeader) {
+                draggedWindow = windowHeader.closest('.window');
+                const rect = draggedWindow.getBoundingClientRect();
+                dragOffset.x = event.clientX - rect.left;
+                dragOffset.y = event.clientY - rect.top;
+                bringToFront(draggedWindow);
+            }
+        }
+
+        function handleMouseMove(event) {
+            if (draggedWindow) {
+                const x = event.clientX - dragOffset.x;
+                const y = event.clientY - dragOffset.y;
+                draggedWindow.style.left = Math.max(0, Math.min(x, window.innerWidth - 200)) + 'px';
+                draggedWindow.style.top = Math.max(0, Math.min(y, window.innerHeight - 100)) + 'px';
+            }
+        }
+
+        function handleMouseUp() {
+            draggedWindow = null;
+        }
+
+        // Start menu functionality
+        let startMenuOpen = false;
+
+        function toggleStartMenu() {
+            const startMenu = document.getElementById('startMenu');
+            startMenuOpen = !startMenuOpen;
+            
+            if (startMenuOpen) {
+                startMenu.classList.add('active');
+                showStartSection('apps');
+            } else {
+                startMenu.classList.remove('active');
+            }
+        }
+
+        function showStartSection(section) {
+            // Update sidebar active state
+            document.querySelectorAll('.start-menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            const content = document.getElementById('startMenuContent');
+            
+            switch(section) {
+                case 'apps':
+                    content.innerHTML = `
+                        <div class="start-menu-apps">
+                            <div class="start-app" onclick="openFileExplorer(); toggleStartMenu();">
+                                <div class="start-app-icon">📁</div>
+                                <div class="start-app-name">File Explorer</div>
+                            </div>
+                            <div class="start-app" onclick="openBrowser(); toggleStartMenu();">
+                                <div class="start-app-icon">🌐</div>
+                                <div class="start-app-name">Terbo Browser</div>
+                            </div>
+                            <div class="start-app" onclick="openPC(); toggleStartMenu();">
+                                <div class="start-app-icon">💻</div>
+                                <div class="start-app-name">PC</div>
+                            </div>
+                            <div class="start-app" onclick="openTextEditor(); toggleStartMenu();">
+                                <div class="start-app-icon">📝</div>
+                                <div class="start-app-name">Text Editor</div>
+                            </div>
+                            <div class="start-app" onclick="openCalculator(); toggleStartMenu();">
+                                <div class="start-app-icon">🧮</div>
+                                <div class="start-app-name">Calculator</div>
+                            </div>
+                            <div class="start-app" onclick="openPaint(); toggleStartMenu();">
+                                <div class="start-app-icon">🎨</div>
+                                <div class="start-app-name">Paint</div>
+                            </div>
+                            <div class="start-app" onclick="openMediaPlayer(); toggleStartMenu();">
+                                <div class="start-app-icon">🎵</div>
+                                <div class="start-app-name">Media Player</div>
+                            </div>
+                            <div class="start-app" onclick="openTaskManager(); toggleStartMenu();">
+                                <div class="start-app-icon">📊</div>
+                                <div class="start-app-name">Task Manager</div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'running':
+                    const runningAppsArray = Array.from(runningApps);
+                    const runningHTML = runningAppsArray.length > 0 ? 
+                        runningAppsArray.map(appName => {
+                            const appInfo = getAppInfo(appName);
+                            return `
+                                <div class="start-app" onclick="focusApp('${appName}'); toggleStartMenu();" style="background: rgba(103, 126, 234, 0.2); border: 1px solid rgba(103, 126, 234, 0.4);">
+                                    <div class="start-app-icon">${appInfo.icon}</div>
+                                    <div class="start-app-name">${appName}</div>
+                                    <div style="position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; background: #4caf50; border-radius: 50%; border: 1px solid white;"></div>
+                                </div>
+                            `;
+                        }).join('') :
+                        '<div style="color: rgba(255,255,255,0.6); text-align: center; padding: 40px;">لا توجد برامج مفتوحة حالياً</div>';
+                    
+                    content.innerHTML = `
+                        <div style="margin-bottom: 16px;">
+                            <h3 style="color: white; font-size: 16px; margin-bottom: 8px;">البرامج المفتوحة (${runningAppsArray.length})</h3>
+                        </div>
+                        <div class="start-menu-apps">${runningHTML}</div>
+                    `;
+                    break;
+                case 'recent':
+                    const recentFiles = getRecentFiles();
+                    const recentHTML = recentFiles.length > 0 ? 
+                        recentFiles.map(file => `
+                            <div class="start-app" onclick="openRecentFile('${file.path}', '${file.name}'); toggleStartMenu();">
+                                <div class="start-app-icon">${getFileIcon(file.name)}</div>
+                                <div class="start-app-name">${file.name}</div>
+                            </div>
+                        `).join('') :
+                        '<div style="color: rgba(255,255,255,0.6); text-align: center; padding: 40px;">No recent files</div>';
+                    
+                    content.innerHTML = `<div class="start-menu-apps">${recentHTML}</div>`;
+                    break;
+                case 'settings':
+                    content.innerHTML = `
+                        <div class="start-menu-apps">
+                            <div class="start-app" onclick="openSystemSettings(); toggleStartMenu();">
+                                <div class="start-app-icon">⚙️</div>
+                                <div class="start-app-name">System Settings</div>
+                            </div>
+                            <div class="start-app" onclick="openDisplaySettings(); toggleStartMenu();">
+                                <div class="start-app-icon">🖥️</div>
+                                <div class="start-app-name">Display</div>
+                            </div>
+                            <div class="start-app" onclick="openSoundSettings(); toggleStartMenu();">
+                                <div class="start-app-icon">🔊</div>
+                                <div class="start-app-name">Sound</div>
+                            </div>
+                            <div class="start-app" onclick="openNetworkSettings(); toggleStartMenu();">
+                                <div class="start-app-icon">🌐</div>
+                                <div class="start-app-name">Network</div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+            }
+        }
+
+        function searchStartMenu(query) {
+            if (!query.trim()) {
+                showStartSection('apps');
+                return;
+            }
+
+            const allApps = [
+                { name: 'File Explorer', icon: '📁', action: 'openFileExplorer()' },
+                { name: 'Terbo Browser', icon: '🌐', action: 'openBrowser()' },
+                { name: 'PC', icon: '💻', action: 'openPC()' },
+                { name: 'Text Editor', icon: '📝', action: 'openTextEditor()' },
+                { name: 'Calculator', icon: '🧮', action: 'openCalculator()' },
+                { name: 'Paint', icon: '🎨', action: 'openPaint()' },
+                { name: 'Media Player', icon: '🎵', action: 'openMediaPlayer()' },
+                { name: 'Task Manager', icon: '📊', action: 'openTaskManager()' }
+            ];
+
+            const filtered = allApps.filter(app => 
+                app.name.toLowerCase().includes(query.toLowerCase())
+            );
+
+            const content = document.getElementById('startMenuContent');
+            const resultsHTML = filtered.length > 0 ?
+                filtered.map(app => `
+                    <div class="start-app" onclick="${app.action}; toggleStartMenu();">
+                        <div class="start-app-icon">${app.icon}</div>
+                        <div class="start-app-name">${app.name}</div>
+                    </div>
+                `).join('') :
+                '<div style="color: rgba(255,255,255,0.6); text-align: center; padding: 40px;">No results found</div>';
+
+            content.innerHTML = `<div class="start-menu-apps">${resultsHTML}</div>`;
+        }
+
+        function getAppInfo(appName) {
+            const appInfoMap = {
+                'File Explorer': { icon: '📁', windowId: 'fileExplorer' },
+                'Terbo Browser': { icon: '🌐', windowId: 'browser' },
+                'PC': { icon: '💻', windowId: 'pcWindow' },
+                'Text Editor': { icon: '📝', windowId: 'textEditor' }
+            };
+            return appInfoMap[appName] || { icon: '❓', windowId: null };
+        }
+
+        function focusApp(appName) {
+            const appInfo = getAppInfo(appName);
+            if (appInfo.windowId) {
+                const window = document.getElementById(appInfo.windowId);
+                if (window) {
+                    window.classList.add('active');
+                    bringToFront(window);
+                }
+            }
+        }
+
+        function powerOptions(action) {
+            toggleStartMenu();
+            if (action === 'shutdown') {
+                showShutdownConfirmation();
+            } else if (action === 'restart') {
+                showRestartConfirmation();
+            }
+        }
+
+        function showShutdownConfirmation() {
+            const modal = document.createElement('div');
+            modal.className = 'modal active';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-title">إغلاق النظام</div>
+                    <p style="margin: 16px 0;">هل أنت متأكد من إغلاق Terbo OS؟</p>
+                    <div class="modal-buttons">
+                        <button class="modal-button secondary" onclick="this.closest('.modal').remove()">إلغاء</button>
+                        <button class="modal-button primary" onclick="shutdownSystem()">إغلاق</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function showRestartConfirmation() {
+            const modal = document.createElement('div');
+            modal.className = 'modal active';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-title">إعادة تشغيل النظام</div>
+                    <p style="margin: 16px 0;">هل أنت متأكد من إعادة تشغيل Terbo OS؟</p>
+                    <div class="modal-buttons">
+                        <button class="modal-button secondary" onclick="this.closest('.modal').remove()">إلغاء</button>
+                        <button class="modal-button primary" onclick="restartSystem()">إعادة تشغيل</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function shutdownSystem() {
+            document.body.innerHTML = `
+                <div style="background: linear-gradient(45deg, #000 0%, #1a1a1a 100%); color: #fff; height: 100vh; display: flex; align-items: center; justify-content: center; flex-direction: column; font-family: 'Segoe UI', sans-serif;">
+                    <div style="text-align: center; animation: fadeIn 1s ease-in;">
+                        <h1 style="font-size: 48px; margin-bottom: 20px; color: #ff6b6b;">Terbo OS</h1>
+                        <p style="font-size: 18px; margin-bottom: 30px; opacity: 0.8;">جاري إغلاق النظام...</p>
+                        <div style="font-size: 64px; animation: pulse 2s infinite;">💤</div>
+                        <p style="font-size: 14px; margin-top: 30px; opacity: 0.6;">شكراً لاستخدام Terbo OS</p>
+                    </div>
+                </div>
+                <style>
+                    @keyframes fadeIn {
+                        from { opacity: 0; transform: translateY(20px); }
+                        to { opacity: 1; transform: translateY(0); }
+                    }
+                    @keyframes pulse {
+                        0%, 100% { transform: scale(1); opacity: 1; }
+                        50% { transform: scale(1.1); opacity: 0.7; }
+                    }
+                </style>
+            `;
+        }
+
+        function restartSystem() {
+            document.body.innerHTML = `
+                <div style="background: linear-gradient(45deg, #000 0%, #1a1a1a 100%); color: #fff; height: 100vh; display: flex; align-items: center; justify-content: center; flex-direction: column; font-family: 'Segoe UI', sans-serif;">
+                    <div style="text-align: center; animation: fadeIn 1s ease-in;">
+                        <h1 style="font-size: 48px; margin-bottom: 20px; color: #4ecdc4;">Terbo OS</h1>
+                        <p style="font-size: 18px; margin-bottom: 30px; opacity: 0.8;">جاري إعادة تشغيل النظام...</p>
+                        <div style="font-size: 64px; animation: spin 2s linear infinite;">🔄</div>
+                        <p style="font-size: 14px; margin-top: 30px; opacity: 0.6;">يرجى الانتظار...</p>
+                    </div>
+                </div>
+                <style>
+                    @keyframes fadeIn {
+                        from { opacity: 0; transform: translateY(20px); }
+                        to { opacity: 1; transform: translateY(0); }
+                    }
+                    @keyframes spin {
+                        from { transform: rotate(0deg); }
+                        to { transform: rotate(360deg); }
+                    }
+                </style>
+            `;
+            
+            setTimeout(() => {
+                location.reload();
+            }, 3000);
+        }
+
+        function getRecentFiles() {
+            const recent = localStorage.getItem('recentFiles');
+            return recent ? JSON.parse(recent) : [];
+        }
+
+        function addToRecentFiles(path, name) {
+            let recent = getRecentFiles();
+            recent = recent.filter(f => f.path !== path); // Remove if exists
+            recent.unshift({ path, name, timestamp: Date.now() });
+            recent = recent.slice(0, 10); // Keep only 10 recent files
+            localStorage.setItem('recentFiles', JSON.stringify(recent));
+        }
+
+        // Close start menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (startMenuOpen && !e.target.closest('.start-menu') && !e.target.closest('.start-button')) {
+                toggleStartMenu();
+            }
+        });
+
+        // Text Editor functionality
+        let currentEditingFile = null;
+        let currentEditingPath = null;
+        let editorHistory = [];
+        let editorHistoryIndex = -1;
+        let isEditorDirty = false;
+
+        function openTextEditor() {
+            openWindow('textEditor');
+            updateEditorStatus();
+        }
+
+        function editCurrentFile() {
+            const fileName = document.getElementById('fileViewerTitle').textContent;
+            const content = document.getElementById('fileContentViewer').textContent;
+            
+            currentEditingFile = fileName;
+            currentEditingPath = [...currentPath, fileName];
+            
+            document.getElementById('editorTitle').textContent = `📝 Text Editor - ${fileName}`;
+            document.getElementById('editorTextarea').value = content;
+            
+            closeModal('fileViewerModal');
+            openWindow('textEditor');
+            
+            addToRecentFiles(currentEditingPath.join('/'), fileName);
+            updateEditorStatus();
+            resetEditorHistory();
+        }
+
+        function newFile() {
+            if (isEditorDirty && !confirm('You have unsaved changes. Continue?')) return;
+            
+            currentEditingFile = null;
+            currentEditingPath = null;
+            document.getElementById('editorTitle').textContent = '📝 Text Editor - Untitled';
+            document.getElementById('editorTextarea').value = '';
+            isEditorDirty = false;
+            updateEditorStatus();
+            resetEditorHistory();
+        }
+
+        function openFileDialog() {
+            // Simulate file dialog by showing current folder files
+            const currentFolderObj = getCurrentFolder();
+            if (!currentFolderObj || !currentFolderObj.children) return;
+            
+            const files = Object.entries(currentFolderObj.children)
+                .filter(([name, item]) => item.type === 'file')
+                .map(([name]) => name);
+            
+            if (files.length === 0) {
+                alert('No files found in current folder');
+                return;
+            }
+            
+            const fileName = prompt(`Select file to open:\n${files.join('\n')}\n\nEnter file name:`);
+            if (fileName && currentFolderObj.children[fileName]) {
+                const file = currentFolderObj.children[fileName];
+                currentEditingFile = fileName;
+                currentEditingPath = [...currentPath, fileName];
+                
+                document.getElementById('editorTitle').textContent = `📝 Text Editor - ${fileName}`;
+                document.getElementById('editorTextarea').value = file.content || '';
+                
+                addToRecentFiles(currentEditingPath.join('/'), fileName);
+                isEditorDirty = false;
+                updateEditorStatus();
+                resetEditorHistory();
+            }
+        }
+
+        function saveFile() {
+            if (!currentEditingFile) {
+                saveAsFile();
+                return;
+            }
+            
+            const content = document.getElementById('editorTextarea').value;
+            const currentFolderObj = getCurrentFolder();
+            
+            if (currentFolderObj && currentFolderObj.children && currentFolderObj.children[currentEditingFile]) {
+                currentFolderObj.children[currentEditingFile].content = content;
+                saveFileSystem();
+                isEditorDirty = false;
+                updateEditorStatus('File saved successfully');
+                
+                // Refresh file explorer if open
+                if (document.getElementById('fileExplorer').classList.contains('active')) {
+                    loadFolder(currentFolder);
+                }
+            }
+        }
+
+        function saveAsFile() {
+            const fileName = prompt('Enter file name:', currentEditingFile || 'document.txt');
+            if (!fileName) return;
+            
+            const content = document.getElementById('editorTextarea').value;
+            const currentFolderObj = getCurrentFolder();
+            
+            if (currentFolderObj && currentFolderObj.children) {
+                currentFolderObj.children[fileName] = { type: 'file', content: content };
+                saveFileSystem();
+                
+                currentEditingFile = fileName;
+                currentEditingPath = [...currentPath, fileName];
+                document.getElementById('editorTitle').textContent = `📝 Text Editor - ${fileName}`;
+                
+                addToRecentFiles(currentEditingPath.join('/'), fileName);
+                isEditorDirty = false;
+                updateEditorStatus('File saved successfully');
+                
+                // Refresh file explorer if open
+                if (document.getElementById('fileExplorer').classList.contains('active')) {
+                    loadFolder(currentFolder);
+                }
+            }
+        }
+
+        function closeTextEditor() {
+            if (isEditorDirty && !confirm('You have unsaved changes. Close anyway?')) return;
+            closeWindow('textEditor');
+        }
+
+        function undoEdit() {
+            const textarea = document.getElementById('editorTextarea');
+            if (editorHistoryIndex > 0) {
+                editorHistoryIndex--;
+                textarea.value = editorHistory[editorHistoryIndex];
+                updateEditorStatus();
+            }
+        }
+
+        function redoEdit() {
+            const textarea = document.getElementById('editorTextarea');
+            if (editorHistoryIndex < editorHistory.length - 1) {
+                editorHistoryIndex++;
+                textarea.value = editorHistory[editorHistoryIndex];
+                updateEditorStatus();
+            }
+        }
+
+        function findText() {
+            const searchTerm = prompt('Find text:');
+            if (!searchTerm) return;
+            
+            const textarea = document.getElementById('editorTextarea');
+            const content = textarea.value;
+            const index = content.toLowerCase().indexOf(searchTerm.toLowerCase());
+            
+            if (index !== -1) {
+                textarea.focus();
+                textarea.setSelectionRange(index, index + searchTerm.length);
+                updateEditorStatus(`Found "${searchTerm}"`);
+            } else {
+                updateEditorStatus(`"${searchTerm}" not found`);
+            }
+        }
+
+        function updateEditorStatus(message = 'Ready') {
+            const textarea = document.getElementById('editorTextarea');
+            const content = textarea.value;
+            const lines = content.split('\n').length;
+            const chars = content.length;
+            const cursorPos = textarea.selectionStart;
+            const textBeforeCursor = content.substring(0, cursorPos);
+            const currentLine = textBeforeCursor.split('\n').length;
+            const currentColumn = textBeforeCursor.split('\n').pop().length + 1;
+            
+            document.getElementById('editorStatus').textContent = message;
+            document.getElementById('editorInfo').textContent = `Line ${currentLine}, Column ${currentColumn} | ${lines} lines, ${chars} characters`;
+        }
+
+        function resetEditorHistory() {
+            editorHistory = [document.getElementById('editorTextarea').value];
+            editorHistoryIndex = 0;
+        }
+
+        function addToEditorHistory(content) {
+            if (editorHistory[editorHistoryIndex] !== content) {
+                editorHistory = editorHistory.slice(0, editorHistoryIndex + 1);
+                editorHistory.push(content);
+                editorHistoryIndex = editorHistory.length - 1;
+                
+                // Keep only last 50 states
+                if (editorHistory.length > 50) {
+                    editorHistory = editorHistory.slice(-50);
+                    editorHistoryIndex = editorHistory.length - 1;
+                }
+            }
+        }
+
+        // Editor event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            const textarea = document.getElementById('editorTextarea');
+            if (textarea) {
+                let timeout;
+                
+                textarea.addEventListener('input', () => {
+                    isEditorDirty = true;
+                    updateEditorStatus('Modified');
+                    
+                    // Add to history after 1 second of no typing
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => {
+                        addToEditorHistory(textarea.value);
+                    }, 1000);
+                });
+                
+                textarea.addEventListener('keyup', () => {
+                    updateEditorStatus();
+                });
+                
+                textarea.addEventListener('click', () => {
+                    updateEditorStatus();
+                });
+                
+                // Keyboard shortcuts
+                textarea.addEventListener('keydown', (e) => {
+                    if (e.ctrlKey) {
+                        switch(e.key) {
+                            case 's':
+                                e.preventDefault();
+                                saveFile();
+                                break;
+                            case 'n':
+                                e.preventDefault();
+                                newFile();
+                                break;
+                            case 'o':
+                                e.preventDefault();
+                                openFileDialog();
+                                break;
+                            case 'f':
+                                e.preventDefault();
+                                findText();
+                                break;
+                            case 'z':
+                                e.preventDefault();
+                                if (e.shiftKey) {
+                                    redoEdit();
+                                } else {
+                                    undoEdit();
+                                }
+                                break;
+                        }
+                    }
+                });
+            }
+        });
+
+        // Placeholder functions for other apps
+        function openCalculator() {
+            runningApps.add('Calculator');
+            updateTaskbarApps();
+            alert('Calculator - Coming Soon!\n\nThis would open a functional calculator application.');
+        }
+
+        function openPaint() {
+            runningApps.add('Paint');
+            updateTaskbarApps();
+            alert('Paint - Coming Soon!\n\nThis would open a drawing application.');
+        }
+
+        function openMediaPlayer() {
+            runningApps.add('Media Player');
+            updateTaskbarApps();
+            alert('Media Player - Coming Soon!\n\nThis would open a media player for audio and video files.');
+        }
+
+        function openTaskManager() {
+            runningApps.add('Task Manager');
+            updateTaskbarApps();
+            alert('Task Manager - Coming Soon!\n\nThis would show running processes and system information.');
+        }
+
+        function openSystemSettings() {
+            alert('System Settings - Coming Soon!\n\nThis would open system configuration options.');
+        }
+
+        function openDisplaySettings() {
+            alert('Display Settings - Coming Soon!\n\nThis would open display configuration options.');
+        }
+
+        function openSoundSettings() {
+            alert('Sound Settings - Coming Soon!\n\nThis would open audio configuration options.');
+        }
+
+        function openNetworkSettings() {
+            alert('Network Settings - Coming Soon!\n\nThis would open network configuration options.');
+        }
+
+        function openRecentFile(path, name) {
+            const pathParts = path.split('/');
+            let current = fileSystem;
+            
+            for (const part of pathParts) {
+                if (current[part]) {
+                    current = current[part];
+                } else if (current.children && current.children[part]) {
+                    current = current.children[part];
+                } else {
+                    alert('File not found');
+                    return;
+                }
+            }
+            
+            if (current.type === 'file') {
+                currentEditingFile = name;
+                currentEditingPath = pathParts;
+                
+                document.getElementById('editorTitle').textContent = `📝 Text Editor - ${name}`;
+                document.getElementById('editorTextarea').value = current.content || '';
+                
+                openWindow('textEditor');
+                isEditorDirty = false;
+                updateEditorStatus();
+                resetEditorHistory();
+            }
+        }
+
+        // File drag and drop functionality
+        function moveFileToFolder(fileName, targetFolderName) {
+            const currentFolderObj = getCurrentFolder();
+            if (!currentFolderObj || !currentFolderObj.children) return;
+
+            const fileToMove = currentFolderObj.children[fileName];
+            const targetFolder = currentFolderObj.children[targetFolderName];
+
+            if (fileToMove && targetFolder && targetFolder.type === 'folder') {
+                // Check if file already exists in target folder
+                if (targetFolder.children && targetFolder.children[fileName]) {
+                    if (!confirm(`ملف بنفس الاسم "${fileName}" موجود في "${targetFolderName}". هل تريد استبداله؟`)) {
+                        return;
+                    }
+                }
+
+                // Initialize children if not exists
+                if (!targetFolder.children) {
+                    targetFolder.children = {};
+                }
+
+                // Move the file
+                targetFolder.children[fileName] = { ...fileToMove };
+                delete currentFolderObj.children[fileName];
+                
+                // Save and refresh current view
+                saveFileSystem();
+                loadFolder(currentFolder);
+                
+                // Re-initialize drag and drop zones
+                setTimeout(() => {
+                    addMainDropZone();
+                    addSidebarDropZones();
+                }, 100);
+                
+                // Show success message
+                showNotification(`تم نقل "${fileName}" إلى "${targetFolderName}" بنجاح! ✅`);
+                addMoveAnimation(fileName, targetFolderName);
+            } else if (fileToMove && !targetFolder) {
+                showNotification(`❌ خطأ: المجلد "${targetFolderName}" غير موجود`);
+            } else if (!fileToMove) {
+                showNotification(`❌ خطأ: الملف "${fileName}" غير موجود`);
+            }
+        }
+
+        function addMoveAnimation(fileName, targetFolderName) {
+            // Create a temporary animation element
+            const animationElement = document.createElement('div');
+            animationElement.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-size: 12px;
+                z-index: 4000;
+                animation: moveSuccess 2s ease-out forwards;
+                pointer-events: none;
+            `;
+            animationElement.innerHTML = `📁 ${fileName} → 📂 ${targetFolderName}`;
+            
+            document.body.appendChild(animationElement);
+            
+            setTimeout(() => {
+                if (document.body.contains(animationElement)) {
+                    document.body.removeChild(animationElement);
+                }
+            }, 2000);
+        }
+
+        // Add drop zone to main content area for moving files out of folders
+        function addMainDropZone() {
+            const mainContent = document.querySelector('#fileExplorer .main-content');
+            if (!mainContent) return;
+
+            mainContent.addEventListener('dragover', (e) => {
+                // Only allow drop if not over a folder
+                if (!e.target.closest('.file-item[data-type="folder"]')) {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    mainContent.classList.add('main-drop-zone');
+                }
+            });
+
+            mainContent.addEventListener('dragleave', (e) => {
+                if (!mainContent.contains(e.relatedTarget)) {
+                    mainContent.classList.remove('main-drop-zone');
+                }
+            });
+
+            mainContent.addEventListener('drop', (e) => {
+                if (!e.target.closest('.file-item[data-type="folder"]')) {
+                    e.preventDefault();
+                    mainContent.classList.remove('main-drop-zone');
+                    
+                    const draggedFileName = e.dataTransfer.getData('text/plain');
+                    // This would move file to current directory (no action needed as it's already there)
+                    showNotification(`📁 "${draggedFileName}" is already in the current location`);
+                }
+            });
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                z-index: 3000;
+                font-size: 14px;
+                animation: slideInRight 0.3s ease-out;
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOutRight 0.3s ease-in';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        // Add CSS animations for notifications
+        const notificationStyles = document.createElement('style');
+        notificationStyles.textContent = `
+            @keyframes slideInRight {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            
+            @keyframes slideOutRight {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(notificationStyles);
+
+        // Initialize the system when page loads
+        window.addEventListener('load', init);
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9919532584f64687',t:'MTc2MDk3MTc5Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
